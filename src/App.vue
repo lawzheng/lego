@@ -1,5 +1,5 @@
 <template>
-  <h1>慕课乐高标准模版</h1>
+  <h1>乐高标准模版</h1>
   <ul>
     <li>开箱即用</li>
     <li>typescript</li>
