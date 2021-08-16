@@ -16,14 +16,14 @@ const router = createRouter({
           path: '',
           name: 'home',
           component: Home,
-          meta: { withHeader: true}
+          meta: { withHeader: true }
         },
         {
           path: 'template/:id',
           name: 'template',
           component: TemplateDetail,
-          meta: { withHeader: true}
-        },
+          meta: { withHeader: true }
+        }
       ]
     },
     {

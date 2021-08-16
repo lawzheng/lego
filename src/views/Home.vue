@@ -1,15 +1,24 @@
 <template>
-  <template-list/>
+  <template-list  :list="testData"/>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { computed, defineComponent } from 'vue'
+import { useStore } from 'vuex'
+import { GlobalDataProps } from '../store/index'
 import TemplateList from '../components/TemplateList.vue'
 export default defineComponent({
-  name: "Home",
+  name: 'Home',
   components: {
-    TemplateList,
+    TemplateList
   },
+  setup () {
+    const store = useStore<GlobalDataProps>()
+    const testData = computed(() => store.state.templates.data)
+    return {
+      testData
+    }
+  }
 })
 </script>
 
@@ -162,8 +171,6 @@ export default defineComponent({
 .poster-item .ant-card {
     border-radius: 12px
 }
-
-
 
 .banner {
     display: flex;
@@ -334,7 +341,5 @@ export default defineComponent({
     left: 50%;
     top: 50%
 }
-
-
 
 </style>

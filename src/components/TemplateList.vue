@@ -2,24 +2,24 @@
   <div class="content-container">
     <div class="template-list-component">
       <a-row :gutter="16">
-        <a-col :span="6" v-for="item in list" :key="item.name" class="poster-item">
+        <a-col :span="6" v-for="item in list" :key="item.id" class="poster-item">
           <!-- <router-link :to="`/template/${item.id}`"> -->
           <router-link :to="{ name: 'template', params: { id: item.id} }">
             <a-card hoverable>
               <template #cover>
                 <img
-                  :alt="item.name"
-                  :src="item.img"
+                  :alt="item.title"
+                  :src="item.coverImg"
                 />
                 <div class="hover-item">
                   <a-button size="large" type="primary">使用该模板创建</a-button>
                 </div>
               </template>
-              <a-card-meta :title="item.name">
+              <a-card-meta :title="item.title">
                 <template #description>
                   <div class="description-detail">
                     <span>作者：{{ item.author }}</span>
-                    <span class="user-number">{{ item.userNum }}</span>
+                    <span class="user-number">{{ item.copiedCount }}</span>
                   </div>
                 </template>
               </a-card-meta>
@@ -32,55 +32,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { reactive } from "vue"
+import { defineComponent, PropType } from 'vue'
+import { TemplateProps } from '../store/templates'
 export default defineComponent({
-  name: "TemplateList",
+  name: 'TemplateList',
   props: {
     list: {
-      type: Array
-    }
-  },
-  setup() {
-    const list = reactive([
-      {
-        name: "前端架构师直播海报",
-        author: "lz",
-        userNum: "740",
-        img: "https://static.imooc-lego.com/upload-files/screenshot-889755.png",
-        id: 1
-      },
-      {
-        name: "前端架构师直播海报",
-        author: "lz",
-        userNum: "740",
-        img: "https://static.imooc-lego.com/upload-files/screenshot-889755.png",
-        id: 1
-      },
-      {
-        name: "前端架构师直播海报",
-        author: "lz",
-        userNum: "740",
-        img: "https://static.imooc-lego.com/upload-files/screenshot-889755.png",
-        id: 1
-      },
-      {
-        name: "前端架构师直播海报",
-        author: "lz",
-        userNum: "740",
-        img: "https://static.imooc-lego.com/upload-files/screenshot-889755.png",
-        id: 1
-      },
-      {
-        name: "前端架构师直播海报",
-        author: "lz",
-        userNum: "740",
-        img: "https://static.imooc-lego.com/upload-files/screenshot-889755.png",
-        id: 1
-      },
-    ])
-    return {
-      list
+      type: Array as PropType<TemplateProps[]>,
+      required: true
     }
   }
 })
