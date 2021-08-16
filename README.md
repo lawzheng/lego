@@ -1,9 +1,24 @@
-# 乐高标准模版
+# lego
 
-## 特性
-* 开箱即用
-* **typescript** 
-* Vue3
-* 支持 tsx
-* eslint
-* 简单易用可扩展
+## Project setup
+```
+npm install
+```
+
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).

@@ -5,18 +5,18 @@
         <a-row type="flex" justify="center">
           <a-col :span="8" class="cover-img">
             <img
-              src="https://static.imooc-lego.com/upload-files/screenshot-977815.png"
+              :src="template.coverImg"
               alt=""
             />
           </a-col>
           <a-col :span="8">
-            <h2>1024 程序员日</h2>
-            <p>1024 程序员日</p>
+            <h2>{{template.title}}</h2>
+            <p>{{template.title}}</p>
             <div class="author">
               <span class="ant-avatar ant-avatar-circle ant-avatar-image" >
-                <img src="http://vue-maker.oss-cn-hangzhou.aliyuncs.com/vue-marker/5f79389d4737571e2e1dc7cb.png" />
+                <img :src="template.coverImg" />
               </span>
-              该模版由 <b>Miss.Lu</b> 创作
+              该模版由 <b>{{template.author}}</b> 创作
             </div>
             <div class="bar-code-area">
               <span>扫一扫，手机预览</span>
@@ -43,14 +43,21 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { computed, defineComponent } from 'vue'
 import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { GlobalDataProps } from '../store/index'
+import { TemplateProps } from '../store/templates'
 export default defineComponent({
-  name: "TemplateDetail",
-  setup() {
+  name: 'TemplateDetail',
+  setup () {
     const route = useRoute()
+    const store = useStore<GlobalDataProps>()
+    const currentId = route.params.id as string
+    const template = computed<TemplateProps>(() => store.getters.getTemplateById(parseInt(currentId)))
     return {
-      route
+      route,
+      template
     }
   }
 })

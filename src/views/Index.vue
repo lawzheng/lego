@@ -9,7 +9,7 @@
       </a-layout-content>
       <a-layout-footer>Footer</a-layout-footer>
     </a-layout>
-  </div> 
+  </div>
   <div class="homepage-container" v-else>
     <router-view></router-view>
   </div>
@@ -25,7 +25,7 @@ export default defineComponent({
   components: {
     Header
   },
-  setup() {
+  setup () {
     const route = useRoute()
     const withHeader = computed(() => route.meta.withHeader)
     return {
