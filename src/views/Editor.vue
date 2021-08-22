@@ -14,16 +14,32 @@
       <a-layout-content class="preview-container">
         <p>画布区域</p>
         <div class="preview-list" id="canvas-area">
-          <l-text
+          <editor-wrapper
             v-for="component in components"
             :key="component.id"
-            v-bind="component.props"
-          />
+            :id="component.id"
+            :active="component.id === (currentElement && currentElement.id)"
+            @set-active="setActive"
+          >
+            <component
+              :is="component.name"
+              v-bind="component.props"
+            />
+            <span class="component-delete" @click="deleteItem(component.id)">x</span>
+          </editor-wrapper>
         </div>
       </a-layout-content>
     </a-layout>
-    <a-layout-sider width="300" style="background: blue">
-      <div class="sidebar-container">组件属性</div>
+    <a-layout-sider width="300" style="background: #fff">
+      <div class="sidebar-container">
+        组件属性
+        <props-table
+          v-if="currentElement && currentElement.props"
+          :props="currentElement.props"
+        >
+
+        </props-table>
+      </div>
     </a-layout-sider>
   </a-layout>
 </template>
@@ -35,24 +51,39 @@ import { GlobalDataProps } from '../store/index'
 import Header from '../components/Header.vue'
 import LText from '../components/LText.vue'
 import ComponentList from '../components/ComponentList.vue'
+import EditorWrapper from '../components/EditorWrapper.vue'
+import PropsTable from '../components/PropsTable.vue'
 import { defaultTextTemplates } from '../defaultTemplates'
+import { ComponentData } from '../store/editor'
 export default defineComponent({
   name: 'Home',
   components: {
     Header,
     LText,
-    ComponentList
+    ComponentList,
+    EditorWrapper,
+    PropsTable
   },
   setup () {
     const store = useStore<GlobalDataProps>()
     const components = computed(() => store.state.editor.components)
+    const currentElement = computed<ComponentData | null>(() => store.getters.getCurrentElement)
     const addItem = (props: any) => {
       store.commit('addComponent', props)
+    }
+    const deleteItem = (id: string) => {
+      store.commit('deleteComponent', id)
+    }
+    const setActive = (id: string) => {
+      store.commit('setActive', id)
     }
     return {
       components,
       defaultTextTemplates,
-      addItem
+      addItem,
+      deleteItem,
+      setActive,
+      currentElement
     }
   }
 })
@@ -147,69 +178,6 @@ export default defineComponent({
 
 .shortcut-list .bold {
   color: #1890ff;
-}
-
-.edit-wrapper {
-  padding: 0;
-  cursor: pointer;
-  border: 1px solid transparent;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.edit-wrapper:hover {
-  border: 1px dashed #ccc;
-}
-
-.edit-wrapper.active {
-  border: 1px solid #1890ff;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  z-index: 1500;
-}
-
-.edit-wrapper .l-image-component,
-.edit-wrapper .l-shape-component,
-.edit-wrapper .l-text-component {
-  position: static !important;
-}
-
-.edit-wrapper.active .resizers .resizer {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #fff;
-  border: 3px solid #1890ff;
-  position: absolute;
-  display: block;
-}
-
-.edit-wrapper .resizers .resizer.top-left {
-  left: -5px;
-  top: -5px;
-  cursor: nwse-resize;
-}
-
-.edit-wrapper .resizers .resizer.top-right {
-  right: -5px;
-  top: -5px;
-  cursor: nesw-resize;
-}
-
-.edit-wrapper .resizers .resizer.bottom-left {
-  left: -5px;
-  bottom: -5px;
-  cursor: nesw-resize;
-}
-
-.edit-wrapper .resizers .resizer.bottom-right {
-  right: -5px;
-  bottom: -5px;
-  cursor: nwse-resize;
 }
 
 .component-wrapper {
@@ -397,18 +365,8 @@ export default defineComponent({
   display: block;
 }
 
-.prop-item {
-  display: flex;
-  margin-bottom: 10px;
-  align-items: center;
-}
-
 .hide-item {
   display: none;
-}
-
-.label {
-  width: 28%;
 }
 
 .prop-item.no-text {
@@ -418,10 +376,6 @@ export default defineComponent({
 
 #item-fontWeight {
   margin-left: 28%;
-}
-
-.prop-component {
-  width: 70%;
 }
 
 .component-a-select .ant-select {

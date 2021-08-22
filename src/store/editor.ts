@@ -1,8 +1,9 @@
 import { Module } from 'vuex'
 import { v4 as uuidv4 } from 'uuid'
 import { GlobalDataProps } from './index'
+import { TextComponentProps } from '../defaultProps'
 
-interface ComponentData {
+export interface ComponentData {
   props: { [key : string]: any };
   id: string;
   name: string;
@@ -25,13 +26,24 @@ const editor: Module<EditorProps, GlobalDataProps> = {
     currentElement: ''
   },
   mutations: {
-    addComponent (state, props) {
+    addComponent (state, props: Partial<TextComponentProps>) {
       const newComponent: ComponentData = {
         id: uuidv4(),
         name: 'l-text',
         props
       }
       state.components.push(newComponent)
+    },
+    deleteComponent (state, id: string) {
+      state.components = state.components.filter(component => component.id !== id)
+    },
+    setActive (state, currentId: string) {
+      state.currentElement = currentId
+    }
+  },
+  getters: {
+    getCurrentElement: (state) => {
+      return state.components.find((component) => component.id === state.currentElement)
     }
   }
 }

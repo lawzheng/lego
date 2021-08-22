@@ -3,11 +3,14 @@ export const defaultTextTemplates = [
     text: '大标题',
     fontSize: '30px',
     fontWeight: 'bold',
-    tag: 'h2'
+    tag: 'h2',
+    lineHeight: '1',
+    textAlign: 'center'
   },
   {
     text: '正文内容',
-    tag: 'p'
+    tag: 'p',
+    fontFamily: ''
   },
   {
     text: '链接内容',
