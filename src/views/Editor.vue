@@ -7,317 +7,310 @@
   <a-layout>
     <a-layout-sider width="300" style="background: yellow">
       <div class="sidebar-container">
-        组件列表
+        <component-list :list="defaultTextTemplates" @on-item-click="addItem"/>
       </div>
     </a-layout-sider>
     <a-layout style="padding: 0 24px 24px">
       <a-layout-content class="preview-container">
         <p>画布区域</p>
-        <div class="preview-list" id="canvas-area"></div>
+        <div class="preview-list" id="canvas-area">
+          <editor-wrapper
+            v-for="component in components"
+            :key="component.id"
+            :id="component.id"
+            :active="component.id === (currentElement && currentElement.id)"
+            @set-active="setActive"
+          >
+            <component
+              :is="component.name"
+              v-bind="component.props"
+            />
+            <span class="component-delete" @click="deleteItem(component.id)">x</span>
+          </editor-wrapper>
+        </div>
       </a-layout-content>
     </a-layout>
-    <a-layout-sider width="300" style="background: blue">
+    <a-layout-sider width="300" style="background: #fff">
       <div class="sidebar-container">
         组件属性
+        <props-table
+          v-if="currentElement && currentElement.props"
+          :props="currentElement.props"
+        >
+
+        </props-table>
       </div>
     </a-layout-sider>
   </a-layout>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { computed, defineComponent } from 'vue'
+import { useStore } from 'vuex'
+import { GlobalDataProps } from '../store/index'
 import Header from '../components/Header.vue'
+import LText from '../components/LText.vue'
+import ComponentList from '../components/ComponentList.vue'
+import EditorWrapper from '../components/EditorWrapper.vue'
+import PropsTable from '../components/PropsTable.vue'
+import { defaultTextTemplates } from '../defaultTemplates'
+import { ComponentData } from '../store/editor'
 export default defineComponent({
   name: 'Home',
   components: {
-    Header
+    Header,
+    LText,
+    ComponentList,
+    EditorWrapper,
+    PropsTable
+  },
+  setup () {
+    const store = useStore<GlobalDataProps>()
+    const components = computed(() => store.state.editor.components)
+    const currentElement = computed<ComponentData | null>(() => store.getters.getCurrentElement)
+    const addItem = (props: any) => {
+      store.commit('addComponent', props)
+    }
+    const deleteItem = (id: string) => {
+      store.commit('deleteComponent', id)
+    }
+    const setActive = (id: string) => {
+      store.commit('setActive', id)
+    }
+    return {
+      components,
+      defaultTextTemplates,
+      addItem,
+      deleteItem,
+      setActive,
+      currentElement
+    }
   }
 })
 </script>
 
 <style scoped>
 .publish-form-container .file-upload-container {
-    height: 130px
+  height: 130px;
 }
 
 .publish-form-container .ant-form-item-label {
-    text-align: left
+  text-align: left;
 }
 
 #preview-barcode-container {
-    border: 2px dotted #efefef;
-    padding: 10px
+  border: 2px dotted #efefef;
+  padding: 10px;
 }
 
 .left-col img {
-    width: 80%
+  width: 80%;
 }
 
 .right-col img {
-    width: 80px
+  width: 80px;
 }
 
 .left-gap {
-    padding-left: 5px;
-    height: 80px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center
+  padding-left: 5px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .delete-area {
-    position: absolute;
-    top: 10px;
-    right: 20px
+  position: absolute;
+  top: 10px;
+  right: 20px;
 }
 
 .channel-item {
-    padding: 10px 0;
-    border-bottom: 1px solid #efefef
+  padding: 10px 0;
+  border-bottom: 1px solid #efefef;
 }
 
 .barcode-container {
-    height: 80px;
-    width: 80px
+  height: 80px;
+  width: 80px;
 }
 
 .template-submit {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
 }
 
 .history-area {
-    position: absolute;
-    right: 0
+  position: absolute;
+  right: 0;
 }
 
 .operation-list {
-    display: flex
+  display: flex;
 }
 
 .shortcut-list {
-    list-style-type: none;
-    padding: 0;
-    width: 300px;
-    margin: 0 auto
+  list-style-type: none;
+  padding: 0;
+  width: 300px;
+  margin: 0 auto;
 }
 
 .shortcut-list-item {
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .shortcut-list .text {
-    color: rgba(0,0,0,.45)
+  color: rgba(0, 0, 0, 0.45);
 }
 
 .operation-list button {
-    margin-left: 10px
+  margin-left: 10px;
 }
 
 .history-area .bold {
-    font-weight: 700
+  font-weight: 700;
 }
 
 .shortcut-list .bold {
-    color: #1890ff
-}
-
-.edit-wrapper {
-    padding: 0;
-    cursor: pointer;
-    border: 1px solid transparent;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none
-}
-
-.edit-wrapper:hover {
-    border: 1px dashed #ccc
-}
-
-.edit-wrapper.active {
-    border: 1px solid #1890ff;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    z-index: 1500
-}
-
-.edit-wrapper .l-image-component,.edit-wrapper .l-shape-component,.edit-wrapper .l-text-component {
-    position: static!important
-}
-
-.edit-wrapper.active .resizers .resizer {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #fff;
-    border: 3px solid #1890ff;
-    position: absolute;
-    display: block
-}
-
-.edit-wrapper .resizers .resizer.top-left {
-    left: -5px;
-    top: -5px;
-    cursor: nwse-resize
-}
-
-.edit-wrapper .resizers .resizer.top-right {
-    right: -5px;
-    top: -5px;
-    cursor: nesw-resize
-}
-
-.edit-wrapper .resizers .resizer.bottom-left {
-    left: -5px;
-    bottom: -5px;
-    cursor: nesw-resize
-}
-
-.edit-wrapper .resizers .resizer.bottom-right {
-    right: -5px;
-    bottom: -5px;
-    cursor: nwse-resize
+  color: #1890ff;
 }
 
 .component-wrapper {
-    width: 100px;
-    position: relative;
-    display: flex;
-    align-items: center
+  width: 100px;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .tip-text {
-    position: absolute;
-    text-align: center;
-    top: 50%;
-    width: 100%;
-    margin-top: -10px
+  position: absolute;
+  text-align: center;
+  top: 50%;
+  width: 100%;
+  margin-top: -10px;
 }
 
 .inside-component {
-    width: 100px!important
+  width: 100px !important;
 }
 
 .image-list {
-    display: flex;
-    flex-wrap: wrap;
-    width: 220px;
-    margin: 20px auto
+  display: flex;
+  flex-wrap: wrap;
+  width: 220px;
+  margin: 20px auto;
 }
 
 .image-list img {
-    max-height: 150px;
-    -o-object-fit: contain;
-    object-fit: contain
+  max-height: 150px;
+  -o-object-fit: contain;
+  object-fit: contain;
 }
 
 .item-image {
-    margin-right: 10px
+  margin-right: 10px;
 }
 
 .component-item {
-    margin-bottom: 15px;
-    cursor: pointer;
-    display: flex;
-    justify-content: center
+  margin-bottom: 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
 }
 
 .create-component-list .uploader-container {
-    padding: 10px;
-    color: #fff;
-    background: #1890ff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all .3s cubic-bezier(.645,.045,.355,1)
+  padding: 10px;
+  color: #fff;
+  background: #1890ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
 .create-component-list .uploader-container:hover {
-    background: #40a9ff
+  background: #40a9ff;
 }
 
 .create-component-list .uploader-container h4 {
-    color: #fff;
-    margin-bottom: 0;
-    margin-left: 10px
+  color: #fff;
+  margin-bottom: 0;
+  margin-left: 10px;
 }
 
 .create-component-list .ant-tabs-tab {
-    margin: 0
+  margin: 0;
 }
 
 .menu-container {
-    display: none;
-    position: absolute;
-    background: #fff;
-    z-index: 2000
+  display: none;
+  position: absolute;
+  background: #fff;
+  z-index: 2000;
 }
 
 .menu-container .ant-menu-item {
-    display: flex;
-    justify-content: space-between
+  display: flex;
+  justify-content: space-between;
 }
 
 .menu-container .ant-menu-item:hover {
-    background: #efefef
+  background: #efefef;
 }
 
 .ant-menu-item .item-shortcut {
-    color: #ccc
+  color: #ccc;
 }
 
 .lego-color-picker {
-    display: flex
+  display: flex;
 }
 
 .native-color-container {
-    width: 40%
+  width: 40%;
 }
 
-.native-color-container input[type=color] {
-    width: 100%;
-    cursor: pointer;
-    height: 50px;
-    border: 0;
-    padding: 0;
-    background-color: transparent
+.native-color-container input[type="color"] {
+  width: 100%;
+  cursor: pointer;
+  height: 50px;
+  border: 0;
+  padding: 0;
+  background-color: transparent;
 }
 
 .picked-color-list {
-    padding: 0 0 0 5px;
-    margin: 0;
-    width: 60%;
-    display: flex;
-    list-style-type: none;
-    flex-wrap: wrap;
-    justify-content: space-between
+  padding: 0 0 0 5px;
+  margin: 0;
+  width: 60%;
+  display: flex;
+  list-style-type: none;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .picked-color-list li {
-    flex: 1;
-    width: 20%;
-    min-width: 20%;
-    max-width: 20%
+  flex: 1;
+  width: 20%;
+  min-width: 20%;
+  max-width: 20%;
 }
 
 .color-item {
-    padding: 3px;
-    width: 20px;
-    height: 20px;
-    border-radius: 3px;
-    margin-right: 5px;
-    cursor: pointer;
-    border: 1px solid #ccc
+  padding: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  margin-right: 5px;
+  cursor: pointer;
+  border: 1px solid #ccc;
 }
 
 /* .transparnet-back {
@@ -325,243 +318,233 @@ export default defineComponent({
 } */
 
 .shadow-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .shadow-item span {
-    width: 28%
+  width: 28%;
 }
 
 .shadow-component {
-    width: 70%
+  width: 70%;
 }
 
 .image-processer {
-    display: flex;
-    justify-content: space-between
+  display: flex;
+  justify-content: space-between;
 }
 
 .image-preview {
-    width: 150px;
-    height: 84px;
-    border: 1px dashed #e6ebed;
-    background: no-repeat 50%/contain
+  width: 150px;
+  height: 84px;
+  border: 1px dashed #e6ebed;
+  background: no-repeat 50% / contain;
 }
 
 .image-preview.extraHeight {
-    height: 110px
+  height: 110px;
 }
 
 .image-cropper img {
-    display: block;
-    max-width: 100%
+  display: block;
+  max-width: 100%;
 }
 
 .image-process {
-    padding: 5px 0;
-    margin-left: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between
+  padding: 5px 0;
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .delete-uploaded {
-    margin-top: 10px;
-    display: block
-}
-
-.prop-item {
-    display: flex;
-    margin-bottom: 10px;
-    align-items: center
+  margin-top: 10px;
+  display: block;
 }
 
 .hide-item {
-    display: none
-}
-
-.label {
-    width: 28%
+  display: none;
 }
 
 .prop-item.no-text {
-    display: inline-block;
-    margin: 0 10px 0 0
+  display: inline-block;
+  margin: 0 10px 0 0;
 }
 
 #item-fontWeight {
-    margin-left: 28%
-}
-
-.prop-component {
-    width: 70%
+  margin-left: 28%;
 }
 
 .component-a-select .ant-select {
-    width: 150px
+  width: 150px;
 }
 
-.prop-component.component-background-processer,.prop-component.component-image-processer,.prop-component.component-shadow-picker {
-    width: 100%
+.prop-component.component-background-processer,
+.prop-component.component-image-processer,
+.prop-component.component-shadow-picker {
+  width: 100%;
 }
 
 #item-backgroundImage {
-    width: 100%;
-    cursor: pointer;
-    margin-bottom: 15px
+  width: 100%;
+  cursor: pointer;
+  margin-bottom: 15px;
 }
 
 #item-backgroundImage .styled-upload-component .uploader-container {
-    min-height: 200px
+  min-height: 200px;
 }
 
 .inline-edit {
-    cursor: pointer
+  cursor: pointer;
 }
 
 .input-error {
-    border: 1px solid #f5222d
+  border: 1px solid #f5222d;
 }
 
 .input-error:focus {
-    border-color: #f5222d
+  border-color: #f5222d;
 }
 
 .input-error::-moz-placeholder {
-    color: #f5222d
+  color: #f5222d;
 }
 
 .input-error:-ms-input-placeholder {
-    color: #f5222d
+  color: #f5222d;
 }
 
 .input-error::placeholder {
-    color: #f5222d
+  color: #f5222d;
 }
 
 .ant-list-item {
-    padding: 10px 15px;
-    transition: all .5s ease-out;
-    cursor: pointer;
-    justify-content: normal;
-    border: 1px solid #fff;
-    border-bottom-color: #f0f0f0
+  padding: 10px 15px;
+  transition: all 0.5s ease-out;
+  cursor: pointer;
+  justify-content: normal;
+  border: 1px solid #fff;
+  border-bottom-color: #f0f0f0;
 }
 
 .ant-list-item .handle {
-    cursor: move;
-    margin-left: auto
+  cursor: move;
+  margin-left: auto;
 }
 
 .ant-list-item.active {
-    border: 1px solid #1890ff
+  border: 1px solid #1890ff;
 }
 
 .ant-list-item:hover {
-    background: #e6f7ff
+  background: #e6f7ff;
 }
 
-.ant-list-item> {
-    margin-right: 10px
+.ant-list-item > {
+  margin-right: 10px;
 }
 
 .ant-list-item button {
-    font-size: 12px
+  font-size: 12px;
 }
 
 .header {
-    display: flex;
-    justify-content: space-between
+  display: flex;
+  justify-content: space-between;
 }
 
 .header .logo-img {
-    margin-right: 20px;
-    height: 40px
+  margin-right: 20px;
+  height: 40px;
 }
 
 .page-title {
-    display: flex
+  display: flex;
 }
 
 .header h4 {
-    color: #fff
+  color: #fff;
 }
 
 .editor-spinner {
-    position: fixed;
-    right: 50%;
-    top: 10px
+  position: fixed;
+  right: 50%;
+  top: 10px;
 }
 
 .preview-container {
-    padding: 24px;
-    margin: 0;
-    min-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative
+  padding: 24px;
+  margin: 0;
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 
 .preview-list {
-    padding: 0;
-    margin: 0;
-    min-width: 375px;
-    min-height: 200px;
-    border: 1px solid #efefef;
-    background: #fff;
-    overflow-x: hidden;
-    overflow-y: auto;
-    position: fixed;
-    margin-top: 50px;
-    max-height: 80vh
+  padding: 0;
+  margin: 0;
+  min-width: 375px;
+  min-height: 200px;
+  border: 1px solid #efefef;
+  background: #fff;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: fixed;
+  margin-top: 50px;
+  max-height: 80vh;
 }
 
 .preview-list.active {
-    border: 1px solid #1890ff
+  border: 1px solid #1890ff;
 }
 
-.preview-list.canvas-fix .l-image-component,.preview-list.canvas-fix .l-shape-component,.preview-list.canvas-fix .l-text-component {
-    box-shadow: none!important
+.preview-list.canvas-fix .l-image-component,
+.preview-list.canvas-fix .l-shape-component,
+.preview-list.canvas-fix .l-text-component {
+  box-shadow: none !important;
 }
 
 .preview-list.canvas-fix {
-    position: absolute;
-    max-height: none
+  position: absolute;
+  max-height: none;
 }
 
 .sidebar-container {
-    padding: 20px
+  padding: 20px;
 }
 
 .body-container {
-    width: 100%;
-    height: 100%;
-    background-size: cover
+  width: 100%;
+  height: 100%;
+  background-size: cover;
 }
 
 .page-settings {
-    padding: 16px
+  padding: 16px;
 }
 
 .settings-panel .ant-tabs-top-content {
-    max-height: calc(100vh - 124px);
-    overflow-y: auto
+  max-height: calc(100vh - 124px);
+  overflow-y: auto;
 }
 
 .final-preview {
-    position: absolute;
-    width: calc(100% - 400px);
-    height: 100%;
-    background: transparent;
-    top: 0;
-    left: 0;
-    z-index: 1500;
-    display: flex;
-    align-items: center;
-    justify-content: center
+  position: absolute;
+  width: calc(100% - 400px);
+  height: 100%;
+  background: transparent;
+  top: 0;
+  left: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* .final-preview-inner {
@@ -574,17 +557,17 @@ export default defineComponent({
 } */
 
 .final-preview-inner .preview-title {
-    height: 44px;
-    line-height: 44px;
-    text-align: center;
-    font-weight: 700
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+  font-weight: 700;
 }
 
 .iframe-container {
-    width: 100%;
-    height: 706px;
-    overflow-y: auto;
-    overflow-x: hidden
+  width: 100%;
+  height: 706px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* .iframe-placeholder {
@@ -592,12 +575,14 @@ export default defineComponent({
     background-size: 50px
 } */
 
-.settings-panel .ant-collapse,.settings-panel .ant-list-bordered {
-    border-radius: 0
+.settings-panel .ant-collapse,
+.settings-panel .ant-list-bordered {
+  border-radius: 0;
 }
 
-.ant-collapse-header,.ant-collapse-item,.settings-panel .ant-tabs-tab {
-    border-radius: 0!important
+.ant-collapse-header,
+.ant-collapse-item,
+.settings-panel .ant-tabs-tab {
+  border-radius: 0 !important;
 }
-
 </style>
