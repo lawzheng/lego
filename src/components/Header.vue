@@ -8,16 +8,26 @@
       />
     </router-link>
   </div>
-  <user-profile/>
+  <user-profile :user="user" />
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
 import UserProfile from './UserProfile.vue'
+import { computed, defineComponent } from 'vue'
+import { useStore } from 'vuex'
+import { GlobalDataProps } from '../store/index'
+
 export default defineComponent({
   name: 'Header',
   components: {
     UserProfile
+  },
+  setup () {
+    const store = useStore<GlobalDataProps>()
+    const user = computed(() => store.state.user.user)
+    return {
+      user
+    }
   }
 })
 </script>

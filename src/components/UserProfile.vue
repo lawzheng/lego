@@ -19,17 +19,23 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue'
+import { defineComponent, PropType } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
 import { GlobalDataProps } from '../store/index'
+import { message } from 'ant-design-vue'
+import { UserProps } from '../store/user'
 export default defineComponent({
   name: 'UserProfile',
+  props: {
+    user: {
+      type: Object as PropType<UserProps>,
+      required: true
+    }
+  },
   setup () {
     const store = useStore<GlobalDataProps>()
     const router = useRouter()
-    const user = computed(() => store.state.user.user)
     const login = () => {
       store.commit('login')
       message.success('登录成功', 2)
@@ -42,7 +48,6 @@ export default defineComponent({
       }, 2000)
     }
     return {
-      user,
       login,
       logout
     }
