@@ -1,9 +1,7 @@
 <template>
   <div class="file-upload">
-    <button @click="triggerUpload">
-      <span v-if="fileStatus === 'loading'">正在上传</span>
-      <span v-else-if="fileStatus === 'success'">上传成功</span>
-      <span v-else-if="fileStatus === 'error'">上传失败</span>
+    <button @click="triggerUpload" :disabled="isUploading">
+      <span v-if="isUploading">正在上传</span>
       <span v-else>点击上传</span>
     </button>
     <input
@@ -12,15 +10,38 @@
       :style="{display: 'none'}"
       @change="handleFileChange"
     >
+    <ul>
+      <li :class="`upload-file upload-${file.status}`"
+        v-for="file in uploadFiles"
+        :key="file.uid"
+      >
+        <span class="filename">{{file.name}}</span>
+        <button class="delete-icon" @click="removeFile(file.uid)">del</button>
+      </li>
+    </ul>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { computed, defineComponent, reactive, ref } from 'vue'
 import axios from 'axios'
+import { v4 as uuidv4 } from 'uuid'
+import { DeleteOutlined, LoadingOutlined, FileOutlined } from '@ant-design/icons-vue'
 type UploadStatus = 'ready' | 'loading' | 'success' | 'error'
+export interface UploadFile {
+  uid: string,
+  size: number,
+  name: string,
+  status: UploadStatus,
+  raw: File
+}
 export default defineComponent({
   name: 'Uploader',
+  components: {
+    DeleteOutlined,
+    LoadingOutlined,
+    FileOutlined
+  },
   props: {
     action: {
       type: String,
@@ -30,10 +51,17 @@ export default defineComponent({
   setup (props) {
     const fileInput = ref<null | HTMLInputElement>(null)
     const fileStatus = ref<UploadStatus>('ready')
+    const uploadFiles = ref<UploadFile[]>([])
+    const isUploading = computed(() => {
+      return uploadFiles.value.some(item => item.status === 'loading')
+    })
     const triggerUpload = () => {
       if (fileInput.value) {
         fileInput.value.click()
       }
+    }
+    const removeFile = (uid: string) => {
+      uploadFiles.value = uploadFiles.value.filter(file => file.uid !== uid)
     }
 
     const handleFileChange = (e: Event) => {
@@ -43,6 +71,14 @@ export default defineComponent({
         const uploadFile = files[0]
         const formData = new FormData()
         formData.append(uploadFile.name, uploadFile)
+        const fileObj = reactive<UploadFile>({
+          uid: uuidv4(),
+          size: uploadFile.size,
+          name: uploadFile.name,
+          status: 'loading',
+          raw: uploadFile
+        })
+        uploadFiles.value.push(fileObj)
         fileStatus.value = 'loading'
         axios.post(props.action, formData, {
           headers: {
@@ -50,9 +86,13 @@ export default defineComponent({
           }
         }).then(resp => {
           console.log(resp.data)
-          fileStatus.value = 'success'
+          fileObj.status = 'success'
         }).catch(() => {
-          fileStatus.value = 'error'
+          fileObj.status = 'error'
+        }).finally(() => {
+          if (fileInput.value) {
+            fileInput.value.value = ''
+          }
         })
       }
     }
@@ -61,12 +101,23 @@ export default defineComponent({
       fileInput,
       triggerUpload,
       fileStatus,
-      handleFileChange
+      handleFileChange,
+      isUploading,
+      uploadFiles,
+      removeFile
     }
   }
 })
 </script>
 
 <style>
-
+.upload-loading {
+  color: yellow;
+}
+.upload-success {
+  color: green;
+}
+.upload-error {
+  color: red;
+}
 </style>
