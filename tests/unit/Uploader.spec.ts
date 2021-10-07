@@ -161,6 +161,44 @@ describe('Uploader component', () => {
     expect(firstItem.classes()).toContain('upload-success')
     expect(firstItem.get('.filename').text()).toBe('test1.png')
   })
+  it('testing drag and drop function', async () => {
+    mockAxios.post.mockResolvedValueOnce({ data: { url: 'xx.url' } })
+    const wrapper = shallowMount(Uploader, {
+      props: {
+        action: 'baidu.com',
+        drag: true
+      }
+    })
+    const uploadArea = wrapper.get('.upload-area')
+    await uploadArea.trigger('dragover')
+    expect(uploadArea.classes()).toContain('is-dragover')
+    await uploadArea.trigger('dragleave')
+    expect(uploadArea.classes()).not.toContain('is-dragover')
+    await uploadArea.trigger('drop', { dataTransfer: { files: [testFile] } })
+    expect(mockAxios.post).toHaveBeenCalledTimes(1)
+    await flushPromises()
+    // 列表长度修改，并且有正确的class
+    expect(wrapper.findAll('li').length).toBe(1)
+  })
+  it('testing manual upload process', async () => {
+    mockAxios.post.mockResolvedValueOnce({ data: { url: 'xx.url' } })
+    const wrapper = shallowMount(Uploader, {
+      props: {
+        action: 'baidu.com',
+        autoUpload: false
+      }
+    })
+    const fileInput = wrapper.get('input').element as HTMLInputElement
+    setInputValue(fileInput)
+    await wrapper.get('input').trigger('change')
+    expect(wrapper.findAll('li').length).toBe(1)
+    const firstItem = wrapper.get('li:first-child')
+    expect(firstItem.classes()).toContain('upload-ready')
+    wrapper.vm.uploadFiles()
+    expect(mockAxios.post).toHaveBeenCalled()
+    await flushPromises()
+    expect(firstItem.classes()).toContain('upload-success')
+  })
   afterEach(() => {
     mockAxios.post.mockReset()
   })

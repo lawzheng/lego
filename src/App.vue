@@ -1,6 +1,10 @@
 <template>
   <div class="app-container">
-    <uploader action="xx" />
+    <uploader action="xx" :drag="true" :autoUpload="true">
+      <template #uploaded="{ uploadedData }" >
+        <img :src="uploadedData.url" alt="">
+      </template>
+    </uploader>
     <router-view></router-view>
   </div>
 </template>
@@ -32,7 +36,7 @@ export default defineComponent({
   &:hover {
     border: 1px dashed #1890ff;
   }
-  &:is-dragover {
+  &.is-dragover {
     border: 2px dashed #1890ff;
     background: rgba(#1890ff, .2);
   }
