@@ -20,16 +20,22 @@
       :style="{display: 'none'}"
       @change="handleFileChange"
     >
-    <ul>
+    <ul
+      v-if="showUploadList"
+      :class="`upload-list upload-list-${listType}`"
+    >
       <li :class="`upload-file upload-${file.status}`"
         v-for="file in fileList"
         :key="file.uid"
       >
+        <img
+          v-if="file.url && listType === 'picture'"
+          class="upload-list-thumbnail"
+          :src="file.url"
+          :alt="file.name"
+        >
         <span class="filename">{{file.name}}</span>
         <button class="delete-icon" @click="removeFile(file.uid)">del</button>
-        <DeleteOutlined />
-        <LoadingOutlined />
-        <FileOutlined />
       </li>
     </ul>
   </div>
@@ -39,7 +45,6 @@
 import { computed, defineComponent, PropType, reactive, ref } from 'vue'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
-import { DeleteOutlined, LoadingOutlined, FileOutlined } from '@ant-design/icons-vue'
 import { last } from 'lodash-es'
 type UploadStatus = 'ready' | 'loading' | 'success' | 'error'
 type CheckUplaod = (file: File) => boolean | Promise<File>
@@ -50,14 +55,10 @@ export interface UploadFile {
   status: UploadStatus;
   raw: File;
   resp?: any;
+  url?: string;
 }
 export default defineComponent({
   name: 'Uploader',
-  components: {
-    DeleteOutlined,
-    LoadingOutlined,
-    FileOutlined
-  },
   props: {
     action: {
       type: String,
@@ -73,9 +74,18 @@ export default defineComponent({
     autoUpload: {
       type: Boolean,
       default: true
+    },
+    listType: {
+      type: String,
+      default: ''
+    },
+    showUploadList: {
+      type: Boolean,
+      default: false
     }
   },
-  setup (props) {
+  emits: ['success'],
+  setup (props, context) {
     const fileInput = ref<null | HTMLInputElement>(null)
     const fileStatus = ref<UploadStatus>('ready')
     const fileList = ref<UploadFile[]>([])
@@ -114,6 +124,7 @@ export default defineComponent({
         console.log(resp.data)
         readyFile.status = 'success'
         readyFile.resp = resp.data
+        context.emit('success', readyFile)
       }).catch(() => {
         readyFile.status = 'error'
       }).finally(() => {
@@ -131,6 +142,18 @@ export default defineComponent({
         status: 'ready',
         raw: uploadFile
       })
+      if (props.listType === 'picture') {
+        try {
+          fileObj.url = URL.createObjectURL(uploadFile)
+        } catch (e) {
+          console.log(e)
+        }
+        // const fileReader = new FileReader()
+        // fileReader.readAsDataURL(uploadFile)
+        // fileReader.addEventListener('load', () => {
+        //   fileObj.url = fileReader.result as string
+        // })
+      }
       fileList.value.push(fileObj)
       if (props.autoUpload) {
         postFile(fileObj)
@@ -222,5 +245,9 @@ export default defineComponent({
 }
 .upload-error {
   color: red;
+}
+.upload-list-thumbnail {
+  width: 70x;
+  height: 70px;
 }
 </style>

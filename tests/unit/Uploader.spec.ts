@@ -199,6 +199,25 @@ describe('Uploader component', () => {
     await flushPromises()
     expect(firstItem.classes()).toContain('upload-success')
   })
+  it('pictureList mode should work fine', async () => {
+    mockAxios.post.mockResolvedValueOnce({ data: { url: 'xx.url' } })
+    window.URL.createObjectURL = jest.fn(() => 'test.url')
+    const wrapper = shallowMount(Uploader, {
+      props: {
+        action: 'baidu.com',
+        listType: 'picture'
+      }
+    })
+    expect(wrapper.get('ul').classes()).toContain('upload-list-picture')
+    const fileInput = wrapper.get('input').element as HTMLInputElement
+    setInputValue(fileInput)
+    await wrapper.get('input').trigger('change')
+    await flushPromises()
+    expect(wrapper.findAll('li').length).toBe(1)
+    expect(wrapper.find('li:first-child img').exists()).toBeTruthy()
+    const firstImg = wrapper.find('li:first-child img')
+    expect(firstImg.attributes('src')).toEqual('test.url')
+  })
   afterEach(() => {
     mockAxios.post.mockReset()
   })
